@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zoom_clone/controller/database.dart';
 
 class Authentication {
-  static Future<User> login({email, password, context}) {
+  static Future<User> login({email, password, context}) async {
     User user;
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    firebaseAuth
+    await firebaseAuth
         .signInWithEmailAndPassword(email: email, password: password)
         .then((value) {
       user = value.user;
@@ -22,12 +22,13 @@ class Authentication {
         ),
       );
     });
+    return user;
   }
 
   static Future<User> register({email, password, context}) async {
     User user;
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-    firebaseAuth
+    await firebaseAuth
         .createUserWithEmailAndPassword(email: email, password: password)
         .then((value) {
       user = value.user;

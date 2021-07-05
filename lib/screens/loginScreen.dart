@@ -9,6 +9,7 @@ import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
 import 'package:zoom_clone/controller/database.dart';
+import 'package:zoom_clone/screens/setProfileScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key key}) : super(key: key);
@@ -166,10 +167,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                       .difference(user.metadata.lastSignInTime)
                                       .abs() <
                                   Duration(seconds: 1)) {
-                                Database.addItem(
-                                    email: user.email,
-                                    username: user.displayName,
-                                    imageUrl: user.photoURL);
+                                // Database.addItem(
+                                //     email: user.email,
+                                //     username: user.displayName,
+                                //     imageUrl: user.photoURL);
+                                print("NEW");
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => setProfileScreen(
+                                      user: user,
+                                    ),
+                                  ),
+                                );
                               } else {
                                 //Navigate to home
                               }

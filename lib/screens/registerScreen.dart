@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_validator/form_validator.dart';
@@ -9,7 +6,7 @@ import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
 import 'package:zoom_clone/controller/database.dart';
-import 'package:zoom_clone/utils/image.dart';
+import 'package:zoom_clone/screens/setProfileScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key key}) : super(key: key);
@@ -21,7 +18,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   bool showPass = true;
   bool showConfirmPass = true;
-  File selectedImage;
+
   String _email, _pass, _cpass;
   final _formKey = GlobalKey<FormState>();
   @override
@@ -63,31 +60,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
-                  child: InkWell(
-                    child: selectedImage == null
-                        ? SvgPicture.asset(
-                            "assets/images/add_dp.svg",
-                            height: 75,
-                            width: 75,
-                          )
-                        : Image.file(
-                            selectedImage,
-                            height: 75,
-                            width: 75,
-                            fit: BoxFit.cover,
-                          ),
-                    onTap: () async {
-                      await selectImage().then((value) {
-                        setState(() {
-                          selectedImage = value;
-                        });
-                      });
-                    },
                   ),
                 ),
                 Container(
@@ -171,11 +143,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     email: _email,
                                     password: _pass)
                                 .then((user) async {
-                              if (user != null) {
-                                SharedPreferences prefs =
-                                    await SharedPreferences.getInstance();
-                                await prefs.setString(
-                                    'userId', user.uid.toString());
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                  'userId', user.uid.toString());
+                              if (user.metadata.creationTime
+                                      .difference(user.metadata.lastSignInTime)
+                                      .abs() <
+                                  Duration(seconds: 1)) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => setProfileScreen(
+                                      user: user,
+                                    ),
+                                  ),
+                                );
                               }
                             });
                           } else {
@@ -215,6 +198,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       .difference(user.metadata.lastSignInTime)
                                       .abs() <
                                   Duration(seconds: 1)) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => setProfileScreen(
+                                      user: user,
+                                    ),
+                                  ),
+                                );
                                 Database.addItem(
                                     email: user.email,
                                     username: user.displayName,

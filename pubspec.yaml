@@ -40,6 +40,7 @@ dependencies:
   jitsi_meet:
   google_sign_in: ^5.0.4
   form_validator: ^0.1.7
+  firebase_storage:
 
 
   # The following adds the Cupertino Icons font to your application.
