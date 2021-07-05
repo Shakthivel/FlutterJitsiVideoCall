@@ -1,11 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:form_validator/form_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zoom_clone/constants/colors.dart';
 import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
+import 'package:zoom_clone/controller/database.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key key}) : super(key: key);
@@ -15,13 +18,16 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool showPass = false;
+  bool showPass = true;
+  String _email, _pass;
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -58,6 +64,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.fromLTRB(25, 50, 25, 10),
                   decoration: inputBoxDecoration,
                   child: TextFormField(
+                    validator: ValidationBuilder().email().required().build(),
+                    onSaved: (value) {
+                      _email = value;
+                    },
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.email),
                       labelText: "Email Address",
@@ -71,6 +81,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   decoration: inputBoxDecoration,
                   child: TextFormField(
                     obscureText: showPass,
+                    validator:
+                        ValidationBuilder().minLength(8).required().build(),
+                    onSaved: (value) {
+                      _pass = value;
+                    },
                     decoration: InputDecoration(
                       prefixIcon: Icon(Icons.lock),
                       suffixIcon: GestureDetector(
@@ -101,7 +116,30 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [colorButton(buttonText: "Sign In")],
+                  children: [
+                    InkWell(
+                      child: colorButton(buttonText: "Sign In"),
+                      onTap: () {
+                        if (_formKey.currentState.validate()) {
+                          _formKey.currentState.save();
+
+                          Authentication.login(
+                                  context: context,
+                                  email: _email,
+                                  password: _pass)
+                              .then((user) async {
+                            if (user != null) {
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                  'userId', user.uid.toString());
+                              //Navigate to home
+                            }
+                          });
+                        }
+                      },
+                    )
+                  ],
                 ),
                 dividerOrWidget,
                 Row(
@@ -116,8 +154,27 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 50,
                         ),
                         onTap: () async {
-                          User user = await Authentication.signInWithGoogle(
-                              context: context);
+                          Authentication.signInWithGoogle(context: context)
+                              .then((user) async {
+                            if (user != null) {
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                  'userId', user.uid.toString());
+
+                              if (user.metadata.creationTime
+                                      .difference(user.metadata.lastSignInTime)
+                                      .abs() <
+                                  Duration(seconds: 1)) {
+                                Database.addItem(
+                                    email: user.email,
+                                    username: user.displayName,
+                                    imageUrl: user.photoURL);
+                              } else {
+                                //Navigate to home
+                              }
+                            }
+                          });
                         },
                       ),
                     ),

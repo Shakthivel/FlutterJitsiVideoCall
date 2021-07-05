@@ -4,9 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_validator/form_validator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
+import 'package:zoom_clone/controller/database.dart';
 import 'package:zoom_clone/utils/image.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -168,9 +170,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     context: context,
                                     email: _email,
                                     password: _pass)
-                                .then((user) {
+                                .then((user) async {
                               if (user != null) {
-                                //Navigate
+                                SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setString(
+                                    'userId', user.uid.toString());
                               }
                             });
                           } else {
@@ -199,9 +204,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         onTap: () async {
                           Authentication.signInWithGoogle(context: context)
-                              .then((user) {
+                              .then((user) async {
                             if (user != null) {
-                              //Navigate
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                  'userId', user.uid.toString());
+
+                              if (user.metadata.creationTime
+                                      .difference(user.metadata.lastSignInTime)
+                                      .abs() <
+                                  Duration(seconds: 1)) {
+                                Database.addItem(
+                                    email: user.email,
+                                    username: user.displayName,
+                                    imageUrl: user.photoURL);
+                              } else {
+                                //Navigate to home
+                              }
                             }
                           });
                         },

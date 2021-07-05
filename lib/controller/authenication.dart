@@ -6,22 +6,31 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zoom_clone/controller/database.dart';
 
 class Authentication {
-  static Future<User> register({
-    email,
-    password,
-    // imgUrl,
-    context,
-  }) async {
+  static Future<User> login({email, password, context}) {
+    User user;
+    FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+    firebaseAuth
+        .signInWithEmailAndPassword(email: email, password: password)
+        .then((value) {
+      user = value.user;
+    }).catchError((err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            err.message.toString(),
+          ),
+        ),
+      );
+    });
+  }
+
+  static Future<User> register({email, password, context}) async {
     User user;
     FirebaseAuth firebaseAuth = FirebaseAuth.instance;
     firebaseAuth
         .createUserWithEmailAndPassword(email: email, password: password)
-        .then((result) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', result.user.uid.toString());
-      user = result.user;
-    }).then((result) {
-      //add user details to firestore
+        .then((value) {
+      user = value.user;
     }).catchError((err) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -34,8 +43,7 @@ class Authentication {
     return user;
   }
 
-  static Future<User> signInWithGoogle(
-      {BuildContext context, bool register}) async {
+  static Future<User> signInWithGoogle({BuildContext context}) async {
     FirebaseAuth auth = FirebaseAuth.instance;
     User user;
 
@@ -70,16 +78,6 @@ class Authentication {
               await auth.signInWithCredential(credential);
 
           user = userCredential.user;
-
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('userId', user.uid.toString());
-
-          if (register) {
-            Database.addItem(
-                email: user.email,
-                username: user.displayName,
-                imageUrl: user.photoURL);
-          }
         } on FirebaseAuthException catch (e) {
           if (e.code == 'account-exists-with-different-credential') {
             ScaffoldMessenger.of(context)
