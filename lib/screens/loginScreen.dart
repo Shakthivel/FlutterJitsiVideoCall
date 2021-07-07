@@ -22,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool showPass = true;
   String _email, _pass;
   final _formKey = GlobalKey<FormState>();
+  OverlayEntry progress = progressOverlay;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -122,6 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: colorButton(buttonText: "Sign In"),
                       onTap: () {
                         if (_formKey.currentState.validate()) {
+                          Overlay.of(context).insert(progress);
                           _formKey.currentState.save();
 
                           Authentication.login(
@@ -134,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   await SharedPreferences.getInstance();
                               await prefs.setString(
                                   'userId', user.uid.toString());
+                              progress.remove();
                               //Navigate to home
                             }
                           });
@@ -155,6 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 50,
                         ),
                         onTap: () async {
+                          Overlay.of(context).insert(progress);
                           Authentication.signInWithGoogle(context: context)
                               .then((user) async {
                             if (user != null) {
@@ -167,11 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       .difference(user.metadata.lastSignInTime)
                                       .abs() <
                                   Duration(seconds: 1)) {
-                                // Database.addItem(
-                                //     email: user.email,
-                                //     username: user.displayName,
-                                //     imageUrl: user.photoURL);
-                                print("NEW");
+                                progress.remove();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -181,8 +182,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 );
                               } else {
+                                progress.remove();
                                 //Navigate to home
                               }
+                            } else {
+                              progress.remove();
                             }
                           });
                         },

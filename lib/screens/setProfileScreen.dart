@@ -26,6 +26,8 @@ class _setProfileScreenState extends State<setProfileScreen> {
   TextEditingController usernameController;
   final _formKey = GlobalKey<FormState>();
   var _username;
+  OverlayEntry progress = progressOverlay;
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +43,10 @@ class _setProfileScreenState extends State<setProfileScreen> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: appPurple,
-          title: Text("Set Profile"),
+          title: Text(
+            "Set Profile",
+            style: buttonStyle,
+          ),
         ),
         body: Form(
           key: _formKey,
@@ -131,6 +136,7 @@ class _setProfileScreenState extends State<setProfileScreen> {
                   child: colorButton(buttonText: "Continue"),
                   onTap: () async {
                     if (_formKey.currentState.validate()) {
+                      Overlay.of(context).insert(progress);
                       _formKey.currentState.save();
                       if ((user.photoURL == null) && (selectedImage == null)) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -141,27 +147,33 @@ class _setProfileScreenState extends State<setProfileScreen> {
                       } else {
                         var url = user.photoURL;
                         if (selectedImage != null) {
-                          await getUid().then((value) async {
-                            print(value);
-                            var storage = FirebaseStorage.instance;
-                            TaskSnapshot snapshot = await storage
-                                .ref()
-                                .child("images/$value")
-                                .putFile(selectedImage);
-                            if (snapshot.state == TaskState.success) {
-                              url = await snapshot.ref.getDownloadURL();
-                            } else {
-                              print(
-                                  'Error from image repo ${snapshot.state.toString()}');
-                              throw ('This file is not an image');
-                            }
-                          });
+                          await getUid().then(
+                            (value) async {
+                              print(value);
+                              var storage = FirebaseStorage.instance;
+                              TaskSnapshot snapshot = await storage
+                                  .ref()
+                                  .child("images/$value")
+                                  .putFile(selectedImage);
+                              if (snapshot.state == TaskState.success) {
+                                url = await snapshot.ref.getDownloadURL();
+                              } else {
+                                print(
+                                    'Error from image repo ${snapshot.state.toString()}');
+                                throw ('This file is not an image');
+                              }
+                            },
+                          );
                         }
-                        print(url);
+
                         Database.addItem(
-                            email: user.email,
-                            username: _username,
-                            imageUrl: url);
+                                email: user.email,
+                                username: _username,
+                                imageUrl: url)
+                            .whenComplete(() {
+                          progress.remove();
+                          //Navigate to home
+                        });
                       }
                     }
                   },

@@ -21,6 +21,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String _email, _pass, _cpass;
   final _formKey = GlobalKey<FormState>();
+  OverlayEntry progress = progressOverlay;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -137,7 +139,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onTap: () {
                         if (_formKey.currentState.validate()) {
                           _formKey.currentState.save();
+
                           if (_pass == _cpass) {
+                            Overlay.of(context).insert(progress);
                             Authentication.register(
                                     context: context,
                                     email: _email,
@@ -151,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       .difference(user.metadata.lastSignInTime)
                                       .abs() <
                                   Duration(seconds: 1)) {
+                                progress.remove();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -186,6 +191,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           width: 50,
                         ),
                         onTap: () async {
+                          Overlay.of(context).insert(progress);
                           Authentication.signInWithGoogle(context: context)
                               .then((user) async {
                             if (user != null) {
@@ -198,6 +204,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       .difference(user.metadata.lastSignInTime)
                                       .abs() <
                                   Duration(seconds: 1)) {
+                                progress.remove();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -206,13 +213,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ),
                                   ),
                                 );
-                                Database.addItem(
-                                    email: user.email,
-                                    username: user.displayName,
-                                    imageUrl: user.photoURL);
                               } else {
+                                progress.remove();
                                 //Navigate to home
                               }
+                            } else {
+                              progress.remove();
                             }
                           });
                         },

@@ -78,3 +78,14 @@ Widget authDecoratedBox({Widget childWidget}) {
     child: childWidget,
   );
 }
+
+OverlayEntry progressOverlay = OverlayEntry(
+    builder: (context) => Stack(
+          children: [
+            Container(color: Colors.white),
+            Center(
+              child: CircularProgressIndicator(),
+            )
+          ],
+        ),
+    opaque: true);
