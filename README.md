@@ -6,7 +6,9 @@ This is a flutter app that makes use of Jitsi SDK to provide free video calls.
 
 SO FAR:
 
-I've implemented google sign in to save time creating a new account. I've used firebase as my database to store uer info like username, email, personal meeting id,etc.
+Implemented google sign in to save time creating a new account. 
+Used firestore as database to store uer info like username, email, personal meeting id,etc.
+Used firebase storage to save user profile images and url is stored in firestore.(NOTE: If google sign in, only the link is stored in firestore).
 
 FUTURE WORKS:
 
