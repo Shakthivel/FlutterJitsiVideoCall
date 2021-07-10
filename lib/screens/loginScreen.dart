@@ -1,14 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zoom_clone/constants/colors.dart';
+import 'package:zoom_clone/constants/routes.dart';
 import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
-import 'package:zoom_clone/controller/database.dart';
 import 'package:zoom_clone/screens/setProfileScreen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -132,13 +130,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                   email: _email,
                                   password: _pass)
                               .then((user) async {
+                            progress.remove();
                             if (user != null) {
                               SharedPreferences prefs =
                                   await SharedPreferences.getInstance();
                               await prefs.setString(
                                   'userId', user.uid.toString());
-                              progress.remove();
+
                               //Navigate to home
+                              Navigator.of(context)
+                                  .pushReplacementNamed(HOME_SCREEN);
                             }
                           });
                         }
@@ -184,6 +185,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               } else {
                                 progress.remove();
                                 //Navigate to home
+                                Navigator.of(context)
+                                    .pushReplacementNamed(HOME_SCREEN);
                               }
                             } else {
                               progress.remove();
@@ -209,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: labelStyle3,
                         ),
                         onTap: () {
-                          Navigator.of(context).pushNamed('/register');
+                          Navigator.of(context).pushNamed(REGISTER_SCREEN);
                         },
                       ),
                     ],

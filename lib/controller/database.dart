@@ -21,7 +21,7 @@ class Database {
 
     await documentReferencer
         .set(data)
-        .whenComplete(() => print("Note item added to the database"))
+        .whenComplete(() => print("Item added to the database"))
         .catchError((e) => print(e));
   }
 

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zoom_clone/constants/routes.dart';
 import 'package:zoom_clone/constants/styles.dart';
 import 'package:zoom_clone/constants/widgets.dart';
 import 'package:zoom_clone/controller/authenication.dart';
-import 'package:zoom_clone/controller/database.dart';
 import 'package:zoom_clone/screens/setProfileScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -147,23 +147,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     email: _email,
                                     password: _pass)
                                 .then((user) async {
-                              SharedPreferences prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString(
-                                  'userId', user.uid.toString());
-                              if (user.metadata.creationTime
-                                      .difference(user.metadata.lastSignInTime)
-                                      .abs() <
-                                  Duration(seconds: 1)) {
-                                progress.remove();
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => setProfileScreen(
-                                      user: user,
+                              progress.remove();
+                              if (user.uid != null) {
+                                SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.setString(
+                                    'userId', user.uid.toString());
+
+                                if (user.metadata.creationTime
+                                        .difference(
+                                            user.metadata.lastSignInTime)
+                                        .abs() <
+                                    Duration(seconds: 1)) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => setProfileScreen(
+                                        user: user,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               }
                             });
                           } else {
@@ -216,6 +220,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               } else {
                                 progress.remove();
                                 //Navigate to home
+                                Navigator.of(context)
+                                    .pushReplacementNamed(HOME_SCREEN);
                               }
                             } else {
                               progress.remove();

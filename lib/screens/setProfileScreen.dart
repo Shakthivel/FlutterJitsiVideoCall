@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:zoom_clone/constants/colors.dart';
 import 'package:zoom_clone/constants/styles.dart';
@@ -139,6 +138,7 @@ class _setProfileScreenState extends State<setProfileScreen> {
                       Overlay.of(context).insert(progress);
                       _formKey.currentState.save();
                       if ((user.photoURL == null) && (selectedImage == null)) {
+                        progress.remove();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text("Select a photo"),
@@ -173,6 +173,7 @@ class _setProfileScreenState extends State<setProfileScreen> {
                             .whenComplete(() {
                           progress.remove();
                           //Navigate to home
+                          Navigator.of(context).pushReplacementNamed("/home");
                         });
                       }
                     }
